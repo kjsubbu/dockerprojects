@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans 
+    xmlns="http://www.springframework.org/schema/beans"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+    xmlns:context="http://www.springframework.org/schema/context"
+    xsi:schemaLocation="
+      http://www.springframework.org/schema/beans 
+      http://www.springframework.org/schema/beans/spring-beans-4.3.xsd
+      http://www.springframework.org/schema/context 
+      http://www.springframework.org/schema/context/spring-context-4.3.xsd">
+
+    <bean id="credentialDao" class="com.cavirin.arap.db.dao.configuration.impl.CredentialDaoImpl">
+                <property name="entityManager" ref="entityManagerWrapper" />
+    </bean>
+    <bean id="assetDao" class="com.cavirin.arap.db.dao.configuration.impl.AssetDaoImpl">
+                <property name="entityManager" ref="entityManagerWrapper" />
+    </bean>
+    <bean id="assetgroupDao" class="com.cavirin.arap.db.dao.configuration.impl.AssetgroupDaoImpl">
+                <property name="entityManager" ref="entityManagerWrapper" />
+    </bean>
+    <!--<bean id="assetfilterDao" class="com.cavirin.arap.db.dao.configuration.impl.AssetfilterDaoImpl">
+                <property name="entityManager" ref="entityManagerWrapper" />
+    </bean>-->
+    <bean id="resourceDao" class="com.cavirin.arap.db.dao.discovery.impl.ResourceDaoImpl">
+                <property name="entityManager" ref="entityManagerWrapper" />
+    </bean>
+    <bean id="cloudresourceDao" class="com.cavirin.arap.db.dao.discovery.impl.CloudResourceDaoImpl">
+                <property name="entityManager" ref="entityManagerWrapper" />
+    </bean>
+    <bean id="worklogDao" class="com.cavirin.arap.db.dao.results.impl.WorklogDaoImpl">
+                <property name="entityManager" ref="entityManagerWrapper" />
+    </bean>
+    <bean id="policyresultDao" class="com.cavirin.arap.db.dao.results.impl.PolicyResultDaoImpl">
+                <property name="entityManager" ref="entityManagerWrapper" />
+    </bean>
+
+    <bean id="configService" class="com.cavirin.arap.db.services.impl.ConfigurationServiceImpl">
+                <property name="entityManager" ref="entityManagerWrapper" />
+    </bean>
+    <bean id="discoveryService" class="com.cavirin.arap.db.services.impl.DiscoveryServiceImpl">
+                <property name="entityManager" ref="entityManagerWrapper" />
+    </bean>
+    <bean id="resultsService" class="com.cavirin.arap.db.services.impl.ResultsServiceImpl">
+                <property name="entityManager" ref="entityManagerWrapper" />
+    </bean>
+    <bean id="contentService" class="com.cavirin.arap.db.services.impl.ContentServiceImpl">
+                <property name="entityManager" ref="entityManagerWrapper" />
+    </bean>
+    <bean id="dockerImageService" class="com.cavirin.arap.db.services.impl.DockerImageServiceImpl">
+                <property name="entityManager" ref="entityManagerWrapper" />
+    </bean>
+
+    <bean id="contentDBService" class="com.cavirin.arap.db.services.impl.ContentDBServiceImpl">
+        <property name="entityManager" ref="entityManagerWrapper2" />
+    </bean>
+
+    <bean id="resultsDBService" class="com.cavirin.arap.db.services.impl.ResultsDBServiceImpl">
+        <property name="entityManager" ref="entityManagerWrapper1" />
+    </bean>
+
+    <bean id="discoveryDBService" class="com.cavirin.arap.db.services.impl.DiscoveryDBServiceImpl">
+        <property name="entityManager" ref="entityManagerWrapper1" />
+    </bean>
+
+    <bean id="configDBService" class="com.cavirin.arap.db.services.impl.ConfigurationDBServiceImpl">
+        <property name="entityManager" ref="entityManagerWrapper1" />
+    </bean>
+	<bean id="vaultService" class="com.cavirin.arap.db.services.impl.VaultServiceImpl"/>
+</beans>
+

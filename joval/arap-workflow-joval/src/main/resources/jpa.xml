@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans
+		xmlns="http://www.springframework.org/schema/beans"
+		xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		xmlns:context="http://www.springframework.org/schema/context"
+		xsi:schemaLocation="
+      http://www.springframework.org/schema/beans
+      http://www.springframework.org/schema/beans/spring-beans-4.3.xsd
+      http://www.springframework.org/schema/context
+      http://www.springframework.org/schema/context/spring-context-4.3.xsd">
+
+	<bean primary="true" id="entityManagerFactory"	class="org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean">
+		<property name="dataSource"	ref="dataSource" />
+		<property name="persistenceUnitName" value="entityManager" />
+		<property name="packagesToScan">
+			<list>
+				<value>com.cavirin.arap.db.entities</value>
+			</list>
+		</property>
+		<!--  <property name="persistenceUnitName" value="entityManager"></property> -->
+		<property name="jpaVendorAdapter">
+			<bean class="org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter">
+				<property name="showSql" value="false"/>
+				<property name="databasePlatform" value="${jpa.hibernate.dialect}"/>
+			</bean>
+		</property>
+	</bean>
+
+	<bean id="transactionManager" class="org.springframework.orm.jpa.JpaTransactionManager">
+		<property name="entityManagerFactory" ref="entityManagerFactory" />
+	</bean>
+	<bean id="entityManagerWrapper" class="org.springframework.orm.jpa.support.SharedEntityManagerBean">
+		<property name="entityManagerFactory" ref="entityManagerFactory"/>
+	</bean>
+
+
+	<bean primary="false" id="entityManagerFactory1" class="org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean">
+		<property name="dataSource"	ref="dataSource1" />
+		<property name="persistenceUnitName" value="entityManager1" />
+		<property name="packagesToScan">
+			<list>
+				<value>com.cavirin.arap.db.data.entities</value>
+			</list>
+		</property>
+		<property name="jpaVendorAdapter">
+			<bean class="org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter">
+				<property name="showSql" value="false"/>
+				<property name="databasePlatform" value="${jpa.hibernate.dialect}"/>
+			</bean>
+		</property>
+	</bean>
+
+	<bean id="transactionManager1" class="org.springframework.orm.jpa.JpaTransactionManager">
+		<property name="entityManagerFactory" ref="entityManagerFactory1" />
+	</bean>
+	<bean id="entityManagerWrapper1" class="org.springframework.orm.jpa.support.SharedEntityManagerBean">
+		<property name="entityManagerFactory" ref="entityManagerFactory1"/>
+	</bean>
+
+
+
+	<bean primary="false" id="entityManagerFactory2" class="org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean">
+		<property name="dataSource"	ref="dataSource2" />
+		<property name="persistenceUnitName" value="entityManager2" />
+		<property name="packagesToScan">
+			<list>
+				<value>com.cavirin.arap.db.data.content</value>
+			</list>
+		</property>
+		<!--  <property name="persistenceUnitName" value="entityManager"></property> -->
+		<property name="jpaVendorAdapter">
+			<bean class="org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter">
+				<property name="showSql" value="false"/>
+				<property name="databasePlatform" value="${jpa.hibernate.dialect}"/>
+			</bean>
+		</property>
+	</bean>
+
+	<bean id="transactionManager2" class="org.springframework.orm.jpa.JpaTransactionManager">
+		<property name="entityManagerFactory" ref="entityManagerFactory2" />
+	</bean>
+	<bean id="entityManagerWrapper2" class="org.springframework.orm.jpa.support.SharedEntityManagerBean">
+		<property name="entityManagerFactory" ref="entityManagerFactory2"/>
+	</bean>
+
+</beans>

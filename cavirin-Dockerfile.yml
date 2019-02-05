@@ -1,0 +1,252 @@
+FROM ubuntu:16.04
+
+ENV CATALINA_HOME /usr/share/tomcat8
+ENV CATALINA_LIB /var/lib/tomcat8
+ENV DEBIAN_FRONTEND=noninteractive
+ENV JAVA_HOME /usr/lib/jvm/java-8-openjdk-amd64
+ENV LSB_RELEASE xenial
+
+
+##########################################################################################
+# Step 1: Required packages
+# TODO: Removed 'postgres-xc-client' as not part of 16.04
+##########################################################################################
+RUN apt-get autoclean; apt-get -y update --fix-missing; \
+	apt-get -y install \
+	curl pv ssh sudo tomcat8 unzip wget zookeeperd software-properties-common \
+	python-software-properties python python-pip python-dev python3 python3-dev \
+	python3-pip python-psycopg2 libpq-dev build-essential libssl-dev libffi-dev jq \
+	gcc make supervisor libpcre3 libpcre3-dev apt-transport-https ca-certificates \
+	libidn11 libxml2 tcpdump bc locales; \
+	rm -rf /var/lib/apt; \
+    pip install --upgrade setuptools==18.5; \
+    pip install --upgrade awscli virtualenv boto3 cmp_version mjson paramiko psycopg2 pywinrm \
+    	redis simplejson version_utils; \
+	pip3 install --upgrade boto3 cmp_version gevent psycopg2 redis requests sqlalchemy version_utils;
+
+
+##########################################################################################
+# Step 2: Ubuntu User (Cavirin Services)
+# openssl passwd -crypt -salt XR welcome
+##########################################################################################
+ADD authorized_keys /tmp/
+RUN useradd -m -p XRomIeEGxUiPo -G sudo -s /bin/bash ubuntu; \
+	echo "export JAVA_HOME=${JAVA_HOME}" > /home/ubuntu/.profile; \
+	echo "export CATALINA_HOME=${CATALINA_HOME}" >> /home/ubuntu/.profile; \
+	echo "export CATALINA_BASE=${CATALINA_LIB}" >> /home/ubuntu/.profile; \
+	echo "alias sv='sudo supervisorctl \$@'" > /home/ubuntu/.profile; \
+	chown ubuntu:ubuntu /home/ubuntu/.profile; \
+	mkdir -m 700 /home/ubuntu/.ssh; \
+	mv /tmp/authorized_keys /home/ubuntu/.ssh/; \
+	chmod 600 /home/ubuntu/.ssh/*; \
+	chown -R ubuntu:ubuntu /home/ubuntu/.ssh; \
+	mkdir /home/ubuntu/.pm2; \
+	chown -R ubuntu:ubuntu /home/ubuntu/.pm2; \
+	echo 'ubuntu ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers; \
+	gpasswd -a ubuntu tomcat8; \
+	gpasswd -a tomcat8 ubuntu; \
+	mkdir -p /var/log/cavirin; \
+	chown -R ubuntu:ubuntu /var/log/cavirin
+
+
+##########################################################################################
+# Step 3: Core Library Modules (Dependences)
+##########################################################################################
+
+# Openssl
+ADD openssl-1.0.2o.tar.gz /tmp
+RUN cd /tmp/openssl-1.0.2o; ./config;  make; make install; \
+	mv /usr/bin/openssl /usr/bin/openssl.orig; \
+	ln -s /usr/local/ssl/bin/openssl /usr/bin/; \
+	rm -rf /tmp/openssl-1.0.2o
+# Generate services SSL certificates
+# Note: These will be regenerated at Cavirin software install time
+RUN mkdir -p -m 755 /tmp/certs; \
+	mkdir -p -m 700 /tmp/certs/CA; \
+	openssl genrsa -out /tmp/certs/CA/rootCA.key 2048; \
+	openssl req -x509 -new -key /tmp/certs/CA/rootCA.key -days 10000 \
+        -subj "/C=US/ST=California/L=Santa Clara/O=Cavirin/OU=www/CN=Cavirin Inc." \
+        -out /tmp/certs/CA/rootCA.crt; \
+    chmod 600 /tmp/certs/CA/*; \
+    mkdir -p -m 755 /tmp/certs/server; \
+   	openssl genrsa -out /tmp/certs/server/server.key 2048; \
+    openssl req -new -key /tmp/certs/server/server.key \
+    	-subj "/C=US/ST=California/L=Santa Clara/O=Cavirin/OU=www/CN=Cavirin Inc." \
+    	-out /tmp/certs/server/server.csr; \
+    openssl x509 -req -in /tmp/certs/server/server.csr \
+        -CA /tmp/certs/CA/rootCA.crt -CAkey /tmp/certs/CA/rootCA.key -CAcreateserial \
+        -out /tmp/certs/server/server.crt -days 5000; \
+    openssl verify -CAfile /tmp/certs/CA/rootCA.crt -purpose sslserver /tmp/certs/server/server.crt; \
+    chmod 600 /tmp/certs/CA/*; \
+    chmod 644 /tmp/certs/server
+    
+
+# Tomcat Service Scripts (Supervisor)
+ADD services/tomcat8/tomcatd.sh ${CATALINA_HOME}/bin/
+ADD services/tomcat8/supervisord.conf /etc/supervisor/conf.d/tomcat8.conf
+
+
+# UTC timezone (default)
+RUN locale-gen en_US.UTF-8
+
+
+# SSH configuration
+RUN mkdir /var/run/sshd; /usr/bin/ssh-keygen -A
+ADD services/sshd/supervisord.conf /etc/supervisor/conf.d/sshd.conf
+ADD services/sshd/sshd_config /etc/ssh/sshd_config
+
+
+##########################################################################################
+# Step 4: Application Modules
+##########################################################################################
+
+# Install NodeJS (10.x) / NPM / PM2 NodeJS Process Manager
+RUN curl -sL https://deb.nodesource.com/setup_10.x | bash -; \
+	apt-get install -y nodejs; \
+	rm -rf /var/lib/apt; \
+	npm install pm2 -g; \
+	rm -rf /tmp/npm-*; \
+	rm -rf /root/.npm; \
+	mkdir /opt/cavirin
+ADD services/pm2/supervisord.conf /etc/supervisor/conf.d/pm2.conf
+	
+
+# Apache Kafka
+ADD kafka_2.11-2.0.0.tgz /opt/kafka
+ADD services/kafka/supervisord.conf /etc/supervisor/conf.d/kafka.conf
+ADD services/zookeeper/supervisord.conf /etc/supervisor/conf.d/zookeeper.conf
+
+
+# Hashicorp Vault
+ADD vault_0.9.0_linux_amd64.zip /tmp/
+RUN mkdir -p /opt/cavirin/vaultdir; \
+	unzip /tmp/vault_0.9.0_linux_amd64.zip -d /opt/cavirin/vaultdir; \
+	mkdir -m 700 /opt/cavirin/vaultdir/certs; \
+	cp /tmp/certs/server/server.crt /opt/cavirin/vaultdir/certs; \
+	cp /tmp/certs/server/server.key /opt/cavirin/vaultdir/certs; \
+	chmod 600 /opt/cavirin/vaultdir/certs/*; \
+	chown -R ubuntu:ubuntu /opt/cavirin/vaultdir; \
+	rm -f /tmp/vault_0.9.0_linux_amd64.zip
+ADD services/vault/vault-config.hcl /opt/cavirin/vaultdir/
+ADD services/vault/vaultd.sh /opt/cavirin/vaultdir/
+ADD services/vault/supervisord.conf /etc/supervisor/conf.d/vault-server.conf
+
+
+# Postgresql 9.5
+# Note: Verify installation via 'psql -U postgres --host localhost'
+# This package is only installed on Control Plane node (not if database is local)
+# apt-get install -y postgres-xc-client; \
+RUN echo "deb http://apt.postgresql.org/pub/repos/apt/ ${LSB_RELEASE}-pgdg main" >> /etc/apt/sources.list.d/pgdg.list; \
+	wget -q https://www.postgresql.org/media/keys/ACCC4CF8.asc -O - | apt-key add -; \
+	apt-get -y update; apt-get install -y postgresql-9.5; \
+	ln -s /etc/postgresql/9.5/main/postgresql.conf /var/lib/postgresql/9.5/main/postgresql.conf; \
+	cp /tmp/certs/server/server.crt /var/lib/postgresql/9.5/main; \
+	cp /tmp/certs/server/server.key /var/lib/postgresql/9.5/main; \
+	chmod 600 /var/lib/postgresql/9.5/main/server.*; \
+	chown postgres:postgres /var/lib/postgresql/9.5/main/server.*; \
+	rm -rf /var/lib/apt
+ADD --chown=postgres:postgres services/postgresql/pg_hba.conf /etc/postgresql/9.5/main/
+ADD --chown=postgres:postgres services/postgresql/postgresql.conf /etc/postgresql/9.5/main/
+ADD services/postgresql/supervisord.conf /etc/supervisor/conf.d/postgresql.conf
+
+
+# Install Java
+RUN add-apt-repository -y ppa:openjdk-r/ppa && apt-get -y update; \
+	apt-get install -y openjdk-8-jre openjdk-8-jdk; \
+	rm -rf /var/lib/apt; \
+	update-java-alternatives -s java-1.8.0-openjdk-amd64; \
+	rm -f /usr/lib/jvm/default-java; \
+	ln -s ${JAVA_HOME} /usr/lib/jvm/default-java;
+
+
+# Nginx 1.15.1
+ADD nginx-1.15.1.tar.gz /tmp
+RUN mkdir -p /var/cache/nginx/client_temp; \
+	mkdir -p /var/cache/nginx/proxy_temp; \
+	mkdir -p /var/cache/nginx/fastcgi_temp; \
+	mkdir -p /var/cache/nginx/uwsgi_temp; \
+	mkdir -p /var/cache/nginx/scgi_temp; \
+	cd /tmp/nginx-1.15.1; \
+	./configure --prefix=/etc/nginx --user=nginx --group=nginx \
+	  	--sbin-path=/usr/sbin/nginx \
+	  	--modules-path=/usr/lib/nginx/modules \
+	  	--conf-path=/etc/nginx/nginx.conf \
+	  	--error-log-path=/var/log/nginx/error.log \
+	  	--http-log-path=/var/log/nginx/access.log \
+	  	--pid-path=/var/run/nginx.pid \
+	  	--lock-path=/var/run/nginx.lock \
+	  	--http-client-body-temp-path=/var/cache/nginx/client_temp \
+	  	--http-proxy-temp-path=/var/cache/nginx/proxy_temp \
+	  	--http-fastcgi-temp-path=/var/cache/nginx/fastcgi_temp \
+	  	--http-uwsgi-temp-path=/var/cache/nginx/uwsgi_temp \
+	  	--http-scgi-temp-path=/var/cache/nginx/scgi_temp \
+	  	--with-compat --with-file-aio --with-threads --with-http_addition_module \
+	  	--with-http_auth_request_module --with-http_dav_module --with-http_flv_module \
+	  	--with-http_gunzip_module --with-http_gzip_static_module --with-http_mp4_module \
+	  	--with-http_random_index_module --with-http_realip_module --with-http_secure_link_module \
+	  	--with-http_slice_module --with-http_ssl_module --with-http_stub_status_module \
+	  	--with-http_sub_module --with-http_v2_module --with-mail --with-mail_ssl_module \
+	  	--with-stream --with-stream_realip_module --with-stream_ssl_module \
+	  	--with-stream_ssl_preread_module \
+	  	--with-cc-opt='-g -O2 -fstack-protector --param=ssp-buffer-size=4 -Wformat -Werror=format-security -Wp,-D_FORTIFY_SOURCE=2 -fPIC' \
+	  	--with-ld-opt='-Wl,-Bsymbolic-functions -Wl,-z,relro -Wl,-z,now -Wl,--as-needed -pie'; \
+	make; make install; \
+	mkdir -p /etc/nginx/conf.d /etc/nginx/sites-available /etc/nginx/sites-enabled; \
+	rm -rf /tmp/nginx-1.15.1
+ADD services/nginx/nginx.conf /etc/nginx/nginx.conf
+ADD services/nginx/supervisord.conf /etc/supervisor/conf.d/nginx.conf
+
+# Redis 4.0.9
+ADD redis-4.0.9.tar.gz /tmp
+RUN cd /tmp/redis-stable/deps && make hiredis jemalloc linenoise lua; \
+	cd /tmp/redis-stable && make; \
+	rm -rf /etc/redis /var/redis && mkdir /etc/redis /var/redis; \
+	cp /tmp/redis-stable/src/redis-server /tmp/redis-stable/src/redis-cli /usr/local/bin; \
+	mkdir -p /var/redis/6379; \
+	rm -rf /tmp/redis-stable
+ADD services/redis/6379.conf /etc/redis/6379.conf
+ADD services/redis/supervisord.conf /etc/supervisor/conf.d/redis_6379.conf
+
+
+# Install Docker
+RUN curl -fsSL https://download.docker.com/linux/ubuntu/gpg | apt-key add - >/dev/null; \
+    apt-key fingerprint 0EBFCD88 >/dev/null; \
+    add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu ${LSB_RELEASE} stable" >/dev/null; \
+	apt-get -y update; \
+    apt-get -y install docker-ce=17.12.1~ce-0~ubuntu; \
+    rm -rf /var/lib/apt; \
+	gpasswd -a tomcat7 docker; \
+    gpasswd -a ubuntu docker;
+ADD services/docker/supervisord.conf /etc/supervisor/conf.d/docker.conf
+# Required for running host integrated Docker services (see readme)
+#	touch /var/run/docker.sock; \
+#	chown -R root:ubuntu /var/run/docker.sock
+
+
+# Install Azure CLI
+RUN echo "deb [arch=amd64] https://packages.microsoft.com/repos/azure-cli/ ${LSB_RELEASE} main" | \
+		tee /etc/apt/sources.list.d/azure-cli.list; \
+    curl -L https://packages.microsoft.com/keys/microsoft.asc | apt-key add -; \
+	apt-get -y update; \
+    apt-get -y install azure-cli; \
+    rm -rf /var/lib/apt;
+
+
+# Install Google Cloud SDK
+RUN echo "deb http://packages.cloud.google.com/apt cloud-sdk-${LSB_RELEASE} main" | \
+    	tee -a /etc/apt/sources.list.d/google-cloud-sdk.list; \
+    curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key add -; \
+	apt-get -y update; \
+    apt-get -y install google-cloud-sdk; \
+    rm -rf /var/lib/apt;
+
+
+##########################################################################################
+# Step 5: Docker default command
+##########################################################################################
+
+EXPOSE 22/tcp
+EXPOSE 443/tcp
+EXPOSE 8080/tcp
+
+CMD ["/usr/bin/supervisord", "-n"]

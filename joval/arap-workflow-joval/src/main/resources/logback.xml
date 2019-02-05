@@ -1,0 +1,160 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+
+	<!--     <appender name="file" class="ch.qos.logback.core.FileAppender">
+		<file>/Users/vipul/arap-next-ga/arap-workflow-prescan/logs/arap-prescan-work.log</file>
+		<append>false</append>
+		<encoder>
+			<pattern>%d [%thread] %-5level  %logger{35} - %msg%n</pattern>
+		</encoder>
+	</appender> --> 
+	<!--   <appender name="ARAP_PRESCAN_LOG" class="ch.qos.logback.core.">
+		<file>/Users/vipul/arap-next-ga/arap-workflow-prescan/logs/arap-prescan-work.log</file>
+		
+		
+		<encoder>
+			<pattern>%d [%thread] %-5level  %logger{35} - %msg%n</pattern>
+		</encoder>
+	</appender>
+	
+    
+    <logger name="timeBased" level="INFO">
+ 	   <appender-ref ref="ARAP_PRESCAN_LOG" />
+	   <appender-ref ref="STDOUT" />
+	</logger> -->
+	
+
+ 	<appender name="ARAP_JOVAL_LOG" class="ch.qos.logback.core.rolling.RollingFileAppender">
+ 		<file>/var/log/cavirin/workflow-joval/arap-joval-work.log</file>
+<!--    	<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+      		<fileNamePattern>/var/log/cavirin/workflow-joval/pulsar-joval-workflow.%d{yyyy-MM-dd}.%i.log</fileNamePattern>
+      		<maxHistory>100</maxHistory>
+      		<timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
+        		<maxFileSize>100MB</maxFileSize>
+      		</timeBasedFileNamingAndTriggeringPolicy>
+    	</rollingPolicy> -->
+                <rollingPolicy class="ch.qos.logback.core.rolling.FixedWindowRollingPolicy">
+                        <!-- <fileNamePattern>/var/log/cavirin/workflow-joval/pulsar-joval-workflow-${jvm}-%i.log</fileNamePattern> -->
+                        <fileNamePattern>/var/log/cavirin/workflow-joval/pulsar-joval-workflow-%i.log</fileNamePattern>
+                        <minIndex>1</minIndex>
+                        <maxIndex>10</maxIndex>
+                        <totalSizeCap>1GB</totalSizeCap>
+                </rollingPolicy>
+
+                <triggeringPolicy class="ch.qos.logback.core.rolling.SizeBasedTriggeringPolicy">
+                        <maxFileSize>100MB</maxFileSize>
+                </triggeringPolicy>    	
+    	<encoder>
+      		<pattern>%relative [%thread] %d{yyyy-MM-dd HH:mm:ss} %class{36}.%M %L %-5level - %msg%n</pattern>
+    	</encoder>
+  	</appender>
+  	 	
+ 	<!--  <appender name="FIX_WINDOW_BASED_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+ 		<file>logs/fixWindowBasedlogFile.log</file>
+    	<rollingPolicy class="ch.qos.logback.core.rolling.FixedWindowRollingPolicy">
+      		<fileNamePattern>c:/logs/fixWindowBasedlogFile%i.log.zip</fileNamePattern>
+      		<minIndex>1</minIndex>
+      		<maxIndex>10</maxIndex>
+    	</rollingPolicy>
+
+  		<triggeringPolicy class="ch.qos.logback.core.rolling.SizeBasedTriggeringPolicy">
+      		<maxFileSize>1KB</maxFileSize>
+    	</triggeringPolicy>
+    	
+    	<encoder>
+      		<pattern>%relative [%thread] %-5level %logger{35} - %msg%n</pattern>
+    	</encoder>
+  	</appender>-
+  	 	
+ 	<appender name="SIZE_AND_TIME_BASED_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+ 		<file>logs/sizeAndTimeBasedlogFile.log</file>
+    	<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+      		<fileNamePattern>c:/logs/sizeAndTimeBasedlogFile.%d{yyyy-MM-dd-HH-mm}.%i.log</fileNamePattern>
+      		<timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
+        		<maxFileSize>1KB</maxFileSize>
+      		</timeBasedFileNamingAndTriggeringPolicy>
+    	</rollingPolicy>
+    	
+    	<encoder>
+      		<pattern>%relative [%thread] %-5level %logger{35} - %msg%n</pattern>
+    	</encoder>
+  	</appender> 	-->
+	
+	<appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+		<encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+			<pattern>%relative [%thread] %d{yyyy-MM-dd HH:mm:ss} %class{36}.%M %L %-5level - %msg%n</pattern>
+		</encoder>		
+ 	</appender>
+	
+	<logger name="com.cavirin.arap.workflow.joval" level="DEBUG" additivity="false">
+		<appender-ref ref="ARAP_JOVAL_LOG" />
+		<appender-ref ref="STDOUT" />
+	</logger>
+
+	<logger name="com.cavirin.arap.workflow.joval.process" level="DEBUG" additivity="false">
+		<appender-ref ref="ARAP_JOVAL_LOG" />
+		<appender-ref ref="STDOUT" />
+	</logger>
+	<logger name="com.cavirin.arap.discovery" level="DEBUG" additivity="false">
+		<appender-ref ref="ARAP_JOVAL_LOG" />
+		<appender-ref ref="STDOUT" />
+	</logger>
+	<logger name="com.cavirin.arap.discovery.aws" level="DEBUG" additivity="false">
+		<appender-ref ref="ARAP_JOVAL_LOG" />
+		<appender-ref ref="STDOUT" />
+	</logger>
+	<logger name="com.cavirin.arap.discovery.azure" level="DEBUG" additivity="false">
+		<appender-ref ref="ARAP_JOVAL_LOG" />
+		<appender-ref ref="STDOUT" />
+	</logger>
+	<logger name="com.cavirin.arap.discovery.azure.jaxb" level="DEBUG" additivity="false">
+		<appender-ref ref="ARAP_JOVAL_LOG" />
+		<appender-ref ref="STDOUT" />
+	</logger>
+	<logger name="com.cavirin.arap.discovery.temp" level="DEBUG" additivity="false">
+		<appender-ref ref="ARAP_JOVAL_LOG" />
+		<appender-ref ref="STDOUT" />
+	</logger>
+	<logger name="com.cavirin.arap.sshtools" level="DEBUG" additivity="false">
+		<appender-ref ref="ARAP_JOVAL_LOG" />
+		<appender-ref ref="STDOUT" />
+	</logger>
+	<logger name="com.cavirin.arap.sysutils" level="DEBUG" additivity="false">
+		<appender-ref ref="ARAP_JOVAL_LOG" />
+		<appender-ref ref="STDOUT" />
+	</logger>
+	<logger name="com.cavirin.jovalpw.v001.iface" level="DEBUG" additivity="false">
+		<appender-ref ref="ARAP_JOVAL_LOG" />
+		<appender-ref ref="STDOUT" />
+	</logger>
+	<logger name="com.cavirin.jovalpw.impl.policyexec" level="DEBUG" additivity="false">
+		<appender-ref ref="ARAP_JOVAL_LOG" />
+		<appender-ref ref="STDOUT" />
+	</logger>
+	
+	<logger name="com.cavirin.RulesEvaluator" level="DEBUG" additivity="false">
+        <appender-ref ref="ARAP_JOVAL_LOG" />
+        <appender-ref ref="STDOUT" />
+    </logger>
+    <logger name="com.cavirin.scap.util" level="DEBUG" additivity="false">
+        <appender-ref ref="ARAP_JOVAL_LOG" />
+        <appender-ref ref="STDOUT" />
+    </logger>
+    <logger name="com.cavirin.platform" level="DEBUG" additivity="false">
+        <appender-ref ref="ARAP_JOVAL_LOG" />
+        <appender-ref ref="STDOUT" />
+    </logger>
+	<logger name="com.cavirin.windows" level="DEBUG" additivity="false">
+		<appender-ref ref="ARAP_JOVAL_LOG" />
+		<appender-ref ref="STDOUT" />
+	</logger>
+	<logger name="com.cavirin.arap.scheduler" additivity="false">
+		<level value="DEBUG"/>
+		<appender-ref ref="ARAP_JOVAL_LOG"/>
+	</logger>
+	<logger name="org.springframeworks" additivity="false">
+                <level value="DEBUG"/>
+                <appender-ref ref="ARAP_JOVAL_LOG"/>
+        </logger>	
+
+</configuration>

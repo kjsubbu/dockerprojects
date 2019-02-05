@@ -1,0 +1,51 @@
+FROM ubuntu:16.04
+
+RUN apt-get -qq autoclean; apt-get -qq update -y --fix-missing;
+
+RUN DEBIAN_FRONTEND=noninteractive apt-get install -y \
+	ant build-essential curl git gcc g++ jq libpq-dev libffi-dev libssl-dev libyaml-dev locales \
+	make python python-dev python-pip python-software-properties python-psycopg2 python3 python3-pip \
+	software-properties-common ssh sudo supervisor vim wget;
+RUN pip install awscli virtualenv
+RUN locale-gen en_US.UTF-8
+
+# Install NodeJS (10.x) / NPM
+RUN curl -sL https://deb.nodesource.com/setup_10.x | bash -; \
+    DEBIAN_FRONTEND=noninteractive apt-get install -y nodejs; \
+    node --version; npm -version; \
+    curl -sL https://dl.yarnpkg.com/debian/pubkey.gpg | sudo apt-key add -; \
+    echo "deb https://dl.yarnpkg.com/debian/ stable main" | sudo tee /etc/apt/sources.list.d/yarn.list; \
+    apt-get -qq -y update; \
+    DEBIAN_FRONTEND=noninteractive apt-get install -y yarn; \
+    yarn --version
+     
+# Install RAML2HTML (Conversion utility)
+RUN npm install -g raml2html\@2.4.0
+
+# Install Java
+RUN add-apt-repository -y ppa:openjdk-r/ppa; \
+		apt-get -qq -y update; \
+		DEBIAN_FRONTEND=noninteractive apt-get install -y openjdk-8-jdk; \
+		update-java-alternatives -s java-1.8.0-openjdk-amd64; \
+		java -version
+
+# Install Maven 3.5.3
+# http://mirror.cc.columbia.edu/pub/software/apache/maven/maven-3/3.5.3/binaries/apache-maven-3.5.3-bin.tar.gz
+ADD apache-maven-3.5.3-bin.tar.gz /opt
+RUN	update-alternatives --install /usr/bin/mvn mvn /opt/apache-maven-3.5.3/bin/mvn 150; mvn -version
+
+# Create 'dev' user account (dev w/welcome)
+RUN useradd -m -s /bin/bash -p PDaQbIRu4yE0E dev; \
+	echo 'dev ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers; \
+	mkdir -m 700 /home/dev/.m2; \
+	mkdir -m 700 /home/dev/.ssh;
+ADD authorized_keys /home/dev/.ssh/
+RUN chmod 600 /home/dev/.ssh/authorized_keys; \
+	chown -R dev:dev /home/dev/.ssh /home/dev/.m2
+
+# SSH configuration
+RUN mkdir /var/run/sshd; /usr/bin/ssh-keygen -A
+ADD sshd.conf /etc/supervisor/conf.d/sshd.conf
+
+# Default container command
+CMD ["/usr/bin/supervisord", "-n"]
