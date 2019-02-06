@@ -1,0 +1,28 @@
+#!/bin/bash
+
+display_usage() {
+  echo ""
+  echo "Usage:  $0  jvmId  numberOfJvms"
+  echo ""
+  echo "To start 4 PreScan JVMs, run as follows"
+  echo "$0  0  4"
+  echo "$0  1  4"
+  echo "$0  2  4"
+  echo "$0  3  4"
+  echo ""
+}
+
+if [  $# -ne 2 ] 
+then 
+  display_usage
+  exit 1
+fi 
+
+#Xms=`awk '/Xms/{print $NF}' /var/lib/cavirin/conf/pulsar-global.properties`
+#Xmx=`awk '/Xmx/{print $NF}' /var/lib/cavirin/conf/pulsar-global.properties`
+#echo "value of Xms is $Xms"
+
+PrescanHeapSize=1024m
+
+java -Xms$PrescanHeapSize -Xmx$PrescanHeapSize -Djvm=$1 -DjvmCount=$2 -cp "./*" com.cavirin.arap.workflow.prescan.PreScanWorkFlowExecution
+

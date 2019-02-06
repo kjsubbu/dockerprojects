@@ -1,0 +1,107 @@
+<beans
+        xmlns="http://www.springframework.org/schema/beans"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns:context="http://www.springframework.org/schema/context"
+        xsi:schemaLocation="
+      http://www.springframework.org/schema/beans
+      http://www.springframework.org/schema/beans/spring-beans-4.3.xsd
+      http://www.springframework.org/schema/context
+      http://www.springframework.org/schema/context/spring-context-4.3.xsd">
+
+    <bean class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+        <property name="locations">
+            <list>
+                <value>file:///var/lib/cavirin/conf/pulsar-global.properties</value>
+            </list>
+
+        </property>
+        <property name="ignoreUnresolvablePlaceholders" value="true"/>
+    </bean>
+
+    <!-- Available properties for HikariCP
+    autoCommit connectionTimeout idleTimeout maxLifetime connectionTestQuery
+    connectionInitSql validationTimeout maximumPoolSize poolName allowPoolSuspension
+    readOnly transactionIsolation leakDetectionThreshold
+    -->
+    <bean id="hikariConfig" class="com.zaxxer.hikari.HikariConfig">
+        <property name="poolName" value="springHikariCP" />
+        <!--<property name="dataSourceClassName" value="org.postgresql.ds.PGSimpleDataSource" />-->
+        <property name="maximumPoolSize" value="${PULSAR_DB_JAVA_CONNECTIONS}" />
+        <property name="jdbcUrl" value="${PULSAR_DB_URL}" />
+        <property name="username" value="${PULSAR_DB_USER_NAME}" />
+        <property name="password" value="${PULSAR_DB_PASSWORD}" />
+        <property name="connectionTestQuery" value="SELECT 1" />
+        <property name="minimumIdle" value="5" />
+        <property name="idleTimeout" value="90000" />
+        <property name="connectionTimeout" value="120000" />
+        <property name="dataSourceProperties">
+            <props>
+                <prop key="cachePrepStmts">true</prop>
+                <prop key="prepStmtCacheSize">250</prop>
+                <prop key="prepStmtCacheSqlLimit">2048</prop>
+            </props>
+        </property>
+    </bean>
+
+    <!-- HikariCP configuration -->
+    <bean id="dataSource" primary="true" class="com.zaxxer.hikari.HikariDataSource" destroy-method="close">
+        <constructor-arg ref="hikariConfig" />
+    </bean>
+
+    <bean id="hikariConfig1" class="com.zaxxer.hikari.HikariConfig">
+        <property name="poolName" value="springHikariCP" />
+        <!--<property name="dataSourceClassName" value="org.postgresql.ds.PGSimpleDataSource" />-->
+        <property name="maximumPoolSize" value="${PULSAR_DB_JAVA_CONNECTIONS}" />
+        <property name="jdbcUrl" value="${PULSAR_DB_URL}" />
+        <property name="username" value="${PULSAR_DB_USER_NAME}" />
+        <property name="schema" value="cav_tenant"/>
+        <property name="password" value="${PULSAR_DB_PASSWORD}" />
+        <property name="connectionTestQuery" value="SELECT 1" />
+        <property name="minimumIdle" value="5" />
+        <property name="idleTimeout" value="90000" />
+        <property name="connectionTimeout" value="120000" />
+        <property name="dataSourceProperties">
+            <props>
+                <prop key="cachePrepStmts">true</prop>
+                <prop key="prepStmtCacheSize">250</prop>
+                <prop key="prepStmtCacheSqlLimit">2048</prop>
+            </props>
+        </property>
+    </bean>
+
+    <!-- HikariCP configuration -->
+    <bean id="dataSource1" class="com.zaxxer.hikari.HikariDataSource" destroy-method="close">
+        <constructor-arg ref="hikariConfig1" />
+    </bean>
+
+
+    <bean id="hikariConfig2" class="com.zaxxer.hikari.HikariConfig">
+        <property name="poolName" value="springHikariCP" />
+        <!--<property name="dataSourceClassName" value="org.postgresql.ds.PGSimpleDataSource" />-->
+        <property name="maximumPoolSize" value="${PULSAR_DB_JAVA_CONNECTIONS}" />
+        <property name="jdbcUrl" value="${PULSAR_DB_URL}" />
+        <property name="schema" value="cav_sys"/>
+        <property name="username" value="${PULSAR_DB_USER_NAME}" />
+        <property name="password" value="${PULSAR_DB_PASSWORD}" />
+        <property name="connectionTestQuery" value="SELECT 1" />
+        <property name="minimumIdle" value="5" />
+        <property name="idleTimeout" value="90000" />
+        <property name="connectionTimeout" value="120000" />
+        <property name="dataSourceProperties">
+            <props>
+                <prop key="cachePrepStmts">true</prop>
+                <prop key="prepStmtCacheSize">250</prop>
+                <prop key="prepStmtCacheSqlLimit">2048</prop>
+            </props>
+        </property>
+    </bean>
+
+    <!-- HikariCP configuration -->
+    <bean id="dataSource2" class="com.zaxxer.hikari.HikariDataSource" destroy-method="close">
+        <constructor-arg ref="hikariConfig2" />
+    </bean>
+
+
+
+
+</beans>

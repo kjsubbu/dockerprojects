@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE log4j:configuration SYSTEM "log4j.dtd">
+<log4j:configuration debug="true"
+	xmlns:log4j='http://jakarta.apache.org/log4j/'>
+
+	<!-- <appender name="consoleAppender" class="org.apache.log4j.ConsoleAppender">
+	 	<param name="threshold" value="debug" />
+	    <layout class="org.apache.log4j.EnhancedPatternLayout">
+			<param name="ConversionPattern" value="%d{dd MMM yyyy HH:mm:ss} %-5p [%c{1}:%6L] | %p %t | %m%n"/>
+		</layout>
+	</appender> -->
+	<!--  <appender name="ARAP_PRESCAN_LOG" class="org.apache.log4j.RollingFileAppender">
+		<param name="file" value="logs/arap-prescan-workflow.log" />
+		<param name="append" value="false" />
+		<param name="maxFileSize" value="10000KB" />
+		<param name="maxBackupIndex" value="5" />
+		<layout class="org.apache.log4j.PatternLayout">
+			<param name="ConversionPattern" value="%d{yyyy-MM-dd HH:mm:ss} %-5p %c{1}:%L - %m%n" />
+		</layout>
+	</appender>-->
+
+	<!--<appender name="ARAP_SERVER_LOG" class="org.apache.log4j.RollingFileAppender">
+		<param name="file" value="logs/arap-next-server.log" />
+		<param name="append" value="false" />
+		<param name="maxFileSize" value="10000KB" />
+		<param name="maxBackupIndex" value="5" />
+		<layout class="org.apache.log4j.PatternLayout">
+			<param name="ConversionPattern" value="%d{yyyy-MM-dd HH:mm:ss} %-5p %c{1}:%L - %m%n" />
+		</layout>
+	</appender>
+	
+	<appender name="ASSESSMENT_LOG" class="org.apache.log4j.RollingFileAppender">
+		<param name="file" value="logs/assessment-log.log" />
+		<param name="append" value="false" />
+		<param name="maxFileSize" value="10000KB" />
+		<param name="maxBackupIndex" value="5" />
+		<layout class="org.apache.log4j.PatternLayout">
+			<param name="ConversionPattern" value="%d{yyyy-MM-dd HH:mm:ss} %-5p %c{1}:%L - %m%n" />
+		</layout>
+	</appender>-->
+	
+	<!--  <logger name="com.cavirin">
+		<level value="debug"/>
+		<appender-ref ref="ARAP_PRESCAN_LOG"/>
+	</logger>
+	<logger name="com.cavirin.arap.scheduler">
+		<level value="debug"/>
+		<appender-ref ref="ARAP_PRESCAN_LOG"/>
+	</logger>
+	<logger name="org.springframeworks">
+                <level value="debug"/>
+                <appender-ref ref="ARAP_PRESCAN_LOG"/>
+        </logger>	
+-->
+</log4j:configuration>

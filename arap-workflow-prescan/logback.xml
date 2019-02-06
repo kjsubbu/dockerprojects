@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+
+	<appender name="ARAP_PRESCAN_LOG" class="ch.qos.logback.core.rolling.RollingFileAppender">
+		<file>/var/log/cavirin/workflow-prescan/arap-prescan-work.log</file>
+		<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+			<fileNamePattern>/var/log/cavirin/workflow-prescan/arap-prescan-work.%d{yyyy-MM-dd}.%i.log</fileNamePattern>
+			<maxHistory>100</maxHistory>
+			<timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
+				<maxFileSize>100MB</maxFileSize>
+			</timeBasedFileNamingAndTriggeringPolicy>
+		</rollingPolicy>
+
+		<encoder>
+			<pattern>%relative [%thread] %d{yyyy-MM-dd HH:mm:ss} %class{36}.%M %L %-5level - %msg%n</pattern>
+		</encoder>
+	</appender>
+
+	<appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+		<encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+			<pattern>%relative [%thread] %d{yyyy-MM-dd HH:mm:ss} %class{36}.%M %L %-5level - %msg%n</pattern>
+		</encoder>
+	</appender>
+
+	<logger name="com.cavirin.arap.workflow.prescan" level="DEBUG" additivity="false">
+		<appender-ref ref="ARAP_PRESCAN_LOG" />
+		/>
+	</logger>
+	<logger name="com.cavirin.arap.workflow.prescan.process" level="DEBUG" additivity="false">
+		<appender-ref ref="ARAP_PRESCAN_LOG" />
+		/>
+	</logger>
+	<logger name="com.cavirin.arap.discovery.aws" level="DEBUG" additivity="false">
+		<appender-ref ref="ARAP_PRESCAN_LOG" />
+		/>
+	</logger>
+	<logger name="com.cavirin.arap.workflow.utility" level="DEBUG" additivity="false">
+		<appender-ref ref="ARAP_PRESCAN_LOG" />
+		/>
+	</logger>
+	<logger name="com.cavirin.arap.discovery" level="DEBUG" additivity="false">
+		<appender-ref ref="ARAP_PRESCAN_LOG" />
+		/>
+	</logger>
+	<logger name="com.cavirin.jovaldb" level="DEBUG" additivity="false">
+		<appender-ref ref="ARAP_PRESCAN_LOG" />
+		/>
+	</logger>
+	<logger name="com.cavirin.arap.discovery.aws" level="DEBUG" additivity="false">
+		<appender-ref ref="ARAP_PRESCAN_LOG" />
+		/>
+	</logger>
+	<logger name="com.cavirin.arap.discovery.azure" level="DEBUG" additivity="false">
+		<appender-ref ref="ARAP_PRESCAN_LOG" />
+		/>
+	</logger>
+	<logger name="com.cavirin.arap.discovery.azure.jaxb" level="DEBUG" additivity="false">
+		<appender-ref ref="ARAP_PRESCAN_LOG" />
+		/>
+	</logger>
+	<logger name="com.cavirin.arap.discovery.temp" level="DEBUG" additivity="false">
+		<appender-ref ref="ARAP_PRESCAN_LOG" />
+		/>
+	</logger>
+	<logger name="com.cavirin.arap.sshtools" level="DEBUG" additivity="false">
+		<appender-ref ref="ARAP_PRESCAN_LOG" />
+		/>
+	</logger>
+	<logger name="com.cavirin.arap.sysutils" level="DEBUG" additivity="false">
+		<appender-ref ref="ARAP_PRESCAN_LOG" />
+		/>
+	</logger>
+
+	<logger name="com.cavirin.arap" level="DEBUG" additivity="false">
+		<appender-ref ref="ARAP_PRESCAN_LOG" />
+		/>
+	</logger>
+	<logger name="com.cavirin.arap.scheduler" additivity="false">
+		<level value="DEBUG"/>
+		<appender-ref ref="ARAP_PRESCAN_LOG"/>
+	</logger>
+	<logger name="org.springframework" additivity="false">
+		<level value="INFO"/>
+		<appender-ref ref="ARAP_PRESCAN_LOG"/>
+	</logger>
+
+
+	<include resource="org/springframework/boot/logging/logback/base.xml"/>
+
+</configuration>
