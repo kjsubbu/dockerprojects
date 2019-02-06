@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:context="http://www.springframework.org/schema/context" 
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:tx="http://www.springframework.org/schema/tx" 
+	xmlns:p="http://www.springframework.org/schema/p" xsi:schemaLocation="http://www.springframework.org/schema/beans 
+	http://www.springframework.org/schema/beans/spring-beans.xsd http://www.springframework.org/schema/context 
+	http://www.springframework.org/schema/context/spring-context.xsd http://www.springframework.org/schema/tx 
+	http://www.springframework.org/schema/tx/spring-tx.xsd"> 
+
+
+	<bean id="applicationContextProvder"
+		class="com.cavirin.arap.workflow.utility.ApplicationContextProvider" />
+
+	<bean id="stringRedisSerializer"
+		class="org.springframework.data.redis.serializer.StringRedisSerializer" />
+
+	<context:component-scan base-package="com.cavirin.arap.workflow.utility" />
+
+	<import resource="datasource.xml" />
+
+	<import resource="jpa.xml" />
+	<import resource="DAOs.xml" />
+
+	<context:annotation-config />
+
+	<tx:annotation-driven />
+
+	<context:component-scan base-package="com.cavirin.arap.db" />
+
+        <bean class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+                <property name="locations">
+                <list>
+                <value>file:///var/lib/cavirin/conf/pulsar-global.properties</value>
+            </list>
+
+                </property>
+                <property name="ignoreUnresolvablePlaceholders" value="true"/>
+        </bean>
+
+        <!-- Redis Connection Factory -->
+        <bean id="jedisConnFactory"
+                class="org.springframework.data.redis.connection.jedis.JedisConnectionFactory">
+                <property name="usePool" value="true"/>
+                <property name="hostName" value="${REDIS_HOST}"/>
+                <!--<property name="hostName" value="localhost"/>-->
+                <property name="port" value="6379" />
+        </bean>
+
+	<!--  Redis Template Global -->
+	<bean id="redisTemplate" class="org.springframework.data.redis.core.RedisTemplate"
+		p:connection-factory-ref="jedisConnFactory" p:keySerializer-ref="stringRedisSerializer"
+		p:hashKeySerializer-ref="stringRedisSerializer" p:valueSerializer-ref="stringRedisSerializer"
+		p:hashValueSerializer-ref="stringRedisSerializer" />
+
+	<!--  Local Bean -->
+	<bean id="workFlowData" class="com.cavirin.arap.workflow.utility.WorkFlowDataImpl">
+		<property name="redisTemplate" ref="redisTemplate" />
+	</bean>
+
+    <!-- This Config Refers to the Redis Local Config-->
+
+	<bean id="jedisConnFactoryLocal"
+		  class="org.springframework.data.redis.connection.jedis.JedisConnectionFactory"
+		  p:use-pool="true" />
+
+	<bean id="redisTemplateLocal" class="org.springframework.data.redis.core.RedisTemplate"
+		  p:connection-factory-ref="jedisConnFactoryLocal" p:keySerializer-ref="stringRedisSerializer"
+		  p:hashKeySerializer-ref="stringRedisSerializer" p:valueSerializer-ref="stringRedisSerializer"
+		  p:hashValueSerializer-ref="stringRedisSerializer" />
+
+	<bean id="workFlowLocal" class="com.cavirin.arap.workflow.utility.WorkFlowDataImpl">
+		<property name="redisTemplate" ref="redisTemplateLocal" />
+	</bean>
+
+	<bean id="devDiscovery" class="com.cavirin.arap.discovery.DevDiscovery"/>
+
+	<bean id="deviceInfoUtil" class="com.cavirin.arap.discovery.DeviceInfoUtil" scope="prototype" init-method="initialize" />
+
+	<bean id="dockerDiscovery" class="com.cavirin.arap.discovery.docker.DockerDiscovery"/>
+
+	<bean id="jovalWinScan" class="com.cavirin.jovaldb.JovalWinScan"/>
+
+</beans>
